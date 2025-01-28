@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -26,13 +27,17 @@ import java.util.concurrent.*;
 
 @Service
 public class InsertService {
+    @Value("${spring.datasource.url}")
+    private String jdbcUrl;
 
+    @Value("${spring.datasource.username}")
+    private String jdbcUser;
+
+    @Value("${spring.datasource.password}")
+    private String jdbcPassword;
 
     public void performBulkInsert() {
 
-            String jdbcUrl = "jdbc:postgresql://localhost:5432/product";
-            String jdbcUser = "postgres";
-            String jdbcPassword = "Logik2021";
             String esHost = "localhost";
             int esPort = 9200;
             String esIndex = "pgsql_elastic_test_1";
