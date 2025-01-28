@@ -29,10 +29,10 @@ public class SearchController {
         }
     }
 
-    @GetMapping("/count")
-    public ResponseEntity<?> countDocuments() {
+    @PostMapping("/count")
+    public ResponseEntity<?> countDocuments(@RequestBody Map<String, Object> queryParams) {
         try {
-            long count = searchService.countDocuments();
+            long count = searchService.countDocuments(queryParams);
             return ResponseEntity.ok("Total count: " + count);
         } catch (IOException e) {
             return ResponseEntity.status(500).body("Error executing count: " + e.getMessage());

@@ -64,7 +64,6 @@ public class SearchService {
         }
 
         sourceBuilder.query(boolQuery);
-
         // Set from and size
         sourceBuilder.from((int) queryParams.getOrDefault("from", 0));
         sourceBuilder.size((int) queryParams.getOrDefault("size", 20));
@@ -101,18 +100,34 @@ public class SearchService {
     }
 
 
-    public long countDocuments() throws IOException {
+    public long countDocuments(Map<String, Object> queryParams) throws IOException {
         // Create a count request for the specified index
         CountRequest countRequest = new CountRequest(INDEX_NAME);
+        BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
 
-        // Build the query
-        BoolQueryBuilder boolQuery = QueryBuilders.boolQuery()
-                .should(QueryBuilders.termsQuery("inventory_items_json.l_type.keyword", "Standard", "Model"))
-                .should(QueryBuilders.termsQuery("ks_coreswduration_json.pl.keyword", "1A"))
-                .should(QueryBuilders.termQuery("largedatatable_json.active", true))
-                .mustNot(QueryBuilders.termQuery("largedatatable_json.active", false))
-                .mustNot(QueryBuilders.termQuery("inventory_items_json.enabled_flag", "N"))
-                .must(QueryBuilders.termQuery("active", true));
+        // Add should clauses
+        List<Map<String, Object>> shouldClauses = (List<Map<String, Object>>) queryParams.get("should");
+        if (shouldClauses != null) {
+            for (Map<String, Object> clause : shouldClauses) {
+                boolQuery.should(QueryBuilders.termsQuery((String) clause.get("field"), (List<String>) clause.get("values")));
+            }
+        }
+
+        // Add must clauses
+        List<Map<String, Object>> mustClauses = (List<Map<String, Object>>) queryParams.get("must");
+        if (mustClauses != null) {
+            for (Map<String, Object> clause : mustClauses) {
+                boolQuery.must(QueryBuilders.termQuery((String) clause.get("field"), clause.get("value")));
+            }
+        }
+
+        // Add must not clauses
+        List<Map<String, Object>> mustNotClauses = (List<Map<String, Object>>) queryParams.get("mustNot");
+        if (mustNotClauses != null) {
+            for (Map<String, Object> clause : mustNotClauses) {
+                boolQuery.mustNot(QueryBuilders.termQuery((String) clause.get("field"), clause.get("value")));
+            }
+        }
 
         // Set the query in the count request
         countRequest.query(boolQuery);
